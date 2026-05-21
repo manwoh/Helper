@@ -144,7 +144,7 @@ class _EntryCard extends StatelessWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: entry.color.withOpacity(0.12),
+                backgroundColor: entry.color.withAlpha(31),
                 foregroundColor: entry.color,
                 child: Icon(entry.icon),
               ),
