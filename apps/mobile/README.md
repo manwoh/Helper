@@ -5,7 +5,7 @@
 ```powershell
 flutter pub get
 flutter run `
-  --dart-define=SUPABASE_URL=https://your-project.supabase.co `
+  --dart-define=SUPABASE_URL=https://xzjyinsvpxgzdxbuluct.supabase.co `
   --dart-define=SUPABASE_ANON_KEY=your-anon-key
 ```
 
