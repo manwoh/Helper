@@ -1,0 +1,25 @@
+name: zhao_bang_shou
+description: 找帮手 Flutter MVP user app.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.8.3
+  go_router: ^14.6.2
+  image_picker: ^1.1.2
+  intl: ^0.20.1
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,30 @@
+# Common
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local
+.env.*.local
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+ios/Pods/
+android/.gradle/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Supabase
+.temp/
+.branches/
+supabase/.temp/
+supabase/.branches/
+supabase/.env
