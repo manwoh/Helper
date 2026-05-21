@@ -93,6 +93,9 @@ jobs:
       - name: Replay migrations and seed
         run: supabase db reset --local
 
+      - name: Test database
+        run: supabase test db
+
       - name: Lint database
         run: supabase db lint --local
 

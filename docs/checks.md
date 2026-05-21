@@ -35,10 +35,12 @@ npm run check:mobile
 ## Supabase SQL
 
 Requires Docker and Supabase CLI.
+RLS tests live in `supabase/tests/database`.
 
 ```powershell
 supabase start
 supabase db reset --local
+supabase test db
 supabase db lint --local
 supabase stop --no-backup
 ```
@@ -55,4 +57,4 @@ npm run check:supabase
 
 - `Next.js Admin`: install, lint, build, audit
 - `Flutter App`: pub get, format, analyze, test
-- `Supabase SQL`: local Supabase start, migration replay, database lint
+- `Supabase SQL`: local Supabase start, migration replay, RLS database tests, database lint

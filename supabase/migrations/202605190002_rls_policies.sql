@@ -126,6 +126,10 @@ begin
     return new;
   end if;
 
+  if current_setting('app.bypass_helper_guard', true) = 'on' then
+    return new;
+  end if;
+
   if new.user_id <> old.user_id
     or new.verification_status <> old.verification_status
     or new.verification_note is distinct from old.verification_note
@@ -722,6 +726,7 @@ declare
   v_task public.tasks%rowtype;
 begin
   perform set_config('app.bypass_task_guard', 'on', true);
+  perform set_config('app.bypass_helper_guard', 'on', true);
 
   select * into v_task
   from public.tasks

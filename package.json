@@ -5,7 +5,7 @@
     "check": "npm run check:admin",
     "check:admin": "npm --prefix apps/admin run check",
     "check:mobile": "cd apps/mobile && flutter pub get && flutter analyze --no-fatal-infos --no-fatal-warnings && flutter test",
-    "check:supabase": "supabase start && supabase db reset --local && supabase db lint --local && supabase stop --no-backup",
+    "check:supabase": "supabase start && supabase db reset --local && supabase test db && supabase db lint --local && supabase stop --no-backup",
     "admin:dev": "npm --prefix apps/admin run dev",
     "admin:build": "npm --prefix apps/admin run build",
     "admin:lint": "npm --prefix apps/admin run lint"
