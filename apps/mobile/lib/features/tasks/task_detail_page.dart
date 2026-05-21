@@ -37,7 +37,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _openChat() async {
     final conversationId = await _chatService.findConversationForTask(widget.taskId);
-    if (!mounted) return;
+    if (!context.mounted) return;
     if (conversationId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('选择帮手后才能开始聊天')),
@@ -49,12 +49,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   Future<void> _confirmCompleted() async {
     await _taskService.confirmCompleted(widget.taskId);
+    if (!context.mounted) return;
     _reload();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('任务已确认完成')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('任务已确认完成')),
+    );
   }
 
   Future<void> _report() async {
@@ -64,11 +63,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
     if (reason == null || reason.trim().isEmpty) return;
     await _taskService.reportTask(taskId: widget.taskId, reason: reason);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('举报已提交')),
-      );
-    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('举报已提交')),
+    );
   }
 
   Future<void> _review(Task task, String revieweeId) async {
@@ -85,11 +83,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       comment: result.comment,
     );
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('评价已提交')),
-      );
-    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('评价已提交')),
+    );
   }
 
   @override
@@ -157,7 +154,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   offers: data.offers,
                   onAccept: (offer) async {
                     final conversationId = await _taskService.acceptOffer(offer.id);
-                    if (mounted) context.go('/chat/$conversationId');
+                    if (!context.mounted) return;
+                    context.go('/chat/$conversationId');
                   },
                   onChat: _openChat,
                   onComplete: _confirmCompleted,
@@ -175,6 +173,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       taskId: task.id,
                       note: '帮手已提交完成证明',
                     );
+                    if (!mounted) return;
                     _reload();
                   },
                   icon: const Icon(Icons.task_alt_outlined),
@@ -401,14 +400,13 @@ class _OfferPanelState extends State<_OfferPanel> {
         _message.text,
         int.tryParse(_minutes.text),
       );
-      if (mounted) {
-        _amount.clear();
-        _message.clear();
-        _minutes.clear();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('报价已提交')),
-        );
-      }
+      if (!context.mounted) return;
+      _amount.clear();
+      _message.clear();
+      _minutes.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('报价已提交')),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

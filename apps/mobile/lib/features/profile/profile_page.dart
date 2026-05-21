@@ -69,17 +69,15 @@ class _ProfilePageState extends State<ProfilePage> {
         bio: _bio.text,
       );
       await _profileService.setRole(_role);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('资料已保存')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('资料已保存')),
+      );
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败：$error')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('保存失败：$error')),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -87,7 +85,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _signOut() async {
     await _authService.signOut();
-    if (mounted) context.go('/login');
+    if (!context.mounted) return;
+    context.go('/login');
   }
 
   @override

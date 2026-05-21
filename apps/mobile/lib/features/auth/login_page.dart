@@ -45,13 +45,13 @@ class _LoginPageState extends State<LoginPage> {
           password: _password.text,
         );
       }
-      if (mounted) context.go('/');
+      if (!context.mounted) return;
+      context.go('/');
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('登录失败：$error')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('登录失败：$error')),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

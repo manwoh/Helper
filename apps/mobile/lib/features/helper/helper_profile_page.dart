@@ -62,17 +62,15 @@ class _HelperProfilePageState extends State<HelperProfilePage> {
         serviceAreas: _splitTags(_areas.text),
         hourlyRate: double.tryParse(_rate.text),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('帮手资料已保存')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('帮手资料已保存')),
+      );
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存失败：$error')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('保存失败：$error')),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }

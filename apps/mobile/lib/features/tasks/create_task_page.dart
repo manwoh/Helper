@@ -105,13 +105,13 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
         );
       }
 
-      if (mounted) context.go('/tasks/$taskId');
+      if (!context.mounted) return;
+      context.go('/tasks/$taskId');
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('发布失败：$error')),
-        );
-      }
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('发布失败：$error')),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
