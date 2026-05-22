@@ -66,6 +66,20 @@ class AppValidators {
     return null;
   }
 
+  static String? budgetRange({
+    required String? minValue,
+    required String? maxValue,
+  }) {
+    final minText = minValue?.trim() ?? '';
+    final maxText = maxValue?.trim() ?? '';
+    if (minText.isEmpty || maxText.isEmpty) return null;
+
+    final min = double.tryParse(minText);
+    final max = double.tryParse(maxText);
+    if (min == null || max == null) return null;
+    return max < min ? '最高预算不能低于最低预算' : null;
+  }
+
   static bool containsBlockedTerm(String value) {
     final lower = value.toLowerCase();
     return blockedTerms.any((term) => lower.contains(term.toLowerCase()));

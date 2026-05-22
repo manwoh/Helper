@@ -85,4 +85,20 @@ void main() {
       expect(AppValidators.optionalMoney('abc'), isNotNull);
     });
   });
+
+  group('AppValidators.budgetRange', () {
+    test('accepts empty or partial range', () {
+      expect(AppValidators.budgetRange(minValue: '', maxValue: ''), isNull);
+      expect(AppValidators.budgetRange(minValue: '50', maxValue: ''), isNull);
+      expect(AppValidators.budgetRange(minValue: '', maxValue: '100'), isNull);
+    });
+
+    test('accepts valid range', () {
+      expect(AppValidators.budgetRange(minValue: '50', maxValue: '100'), isNull);
+    });
+
+    test('rejects max lower than min', () {
+      expect(AppValidators.budgetRange(minValue: '120', maxValue: '80'), isNotNull);
+    });
+  });
 }

@@ -2,6 +2,7 @@ import '../core/supabase_client.dart';
 import '../models/app_category.dart';
 import '../models/offer.dart';
 import '../models/task.dart';
+import '../models/task_create_input.dart';
 
 class TaskDetailData {
   const TaskDetailData({
@@ -95,38 +96,11 @@ class TaskService {
     );
   }
 
-  Future<String> createTask({
-    required TaskKind taskKind,
-    required String title,
-    required String description,
-    required String locationText,
-    required String? categoryId,
-    required String? subcategoryId,
-    required String? city,
-    required String? district,
-    required double? budgetMin,
-    required double? budgetMax,
-    required bool isUrgent,
-  }) async {
+  Future<String> createTask(TaskCreateInput input) async {
     final user = supabase.auth.currentUser!;
     final row = await supabase
         .from('tasks')
-        .insert({
-          'creator_id': user.id,
-          'task_type': taskKind.value,
-          'title': title.trim(),
-          'description': description.trim(),
-          'location_text': locationText.trim(),
-          'category_id': categoryId,
-          'subcategory_id': subcategoryId,
-          'city': city?.trim(),
-          'district': district?.trim(),
-          'budget_min': budgetMin,
-          'budget_max': budgetMax,
-          'is_urgent': isUrgent,
-          'urgent_fee': isUrgent ? 3 : 0,
-          'status': 'open',
-        })
+        .insert(input.toInsertMap(creatorId: user.id))
         .select('id')
         .single();
 
@@ -137,6 +111,7 @@ class TaskService {
     required String taskId,
     required String storagePath,
     required String? publicUrl,
+    int sortOrder = 0,
   }) async {
     final user = supabase.auth.currentUser!;
     await supabase.from('task_images').insert({
@@ -144,6 +119,7 @@ class TaskService {
       'uploader_id': user.id,
       'storage_path': storagePath,
       'public_url': publicUrl,
+      'sort_order': sortOrder,
     });
   }
 
