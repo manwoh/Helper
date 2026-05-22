@@ -29,6 +29,35 @@ class AppValidators {
     return containsBlockedTerm(text) ? '内容不符合平台规则' : null;
   }
 
+  static String? displayName(String? value) {
+    return requiredText(value, min: 2, max: 24);
+  }
+
+  static String? email(String? value) {
+    final text = value?.trim() ?? '';
+    final valid = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(text);
+    return valid ? null : '请输入有效邮箱';
+  }
+
+  static String? password(String? value) {
+    final text = value ?? '';
+    if (text.length < 6) return '密码至少 6 位';
+    if (text.length > 72) return '密码最多 72 位';
+    return null;
+  }
+
+  static String? confirmPassword(String? value, String password) {
+    if (value != password) return '两次输入的密码不一致';
+    return AppValidators.password(value);
+  }
+
+  static String? optionalPhone(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return null;
+    final valid = RegExp(r'^[0-9+\-\s()]{6,24}$').hasMatch(text);
+    return valid ? null : '请输入有效电话';
+  }
+
   static String? optionalMoney(String? value) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return null;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/env.dart';
+import 'core/router_refresh.dart';
 import 'core/supabase_client.dart';
 import 'core/theme.dart';
 import 'features/auth/login_page.dart';
@@ -31,48 +32,57 @@ class ZhaoBangShouApp extends StatelessWidget {
       title: '找帮手',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      routerConfig: _router,
+      routerConfig: _router(),
     );
   }
 }
 
-final _router = GoRouter(
-  redirect: (context, state) {
-    final isLoggedIn = supabase.auth.currentSession != null;
-    final isLogin = state.matchedLocation == '/login';
-    if (!isLoggedIn && !isLogin) return '/login';
-    if (isLoggedIn && isLogin) return '/';
-    return null;
-  },
-  routes: [
-    GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
-    GoRoute(path: '/', builder: (context, state) => const HomePage()),
-    GoRoute(
-      path: '/notifications',
-      builder: (context, state) => const NotificationsPage(),
-    ),
-    GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
-    GoRoute(
-      path: '/helper-profile',
-      builder: (context, state) => const HelperProfilePage(),
-    ),
-    GoRoute(path: '/tasks', builder: (context, state) => const TaskListPage()),
-    GoRoute(
-      path: '/tasks/new/:kind',
-      builder: (context, state) => CreateTaskPage(
-        taskKind: taskKindFromValue(state.pathParameters['kind']),
+GoRouter? _cachedRouter;
+
+GoRouter _router() {
+  return _cachedRouter ??= GoRouter(
+    refreshListenable: GoRouterRefreshStream(supabase.auth.onAuthStateChange),
+    redirect: (context, state) {
+      final isLoggedIn = supabase.auth.currentSession != null;
+      final isLogin = state.matchedLocation == '/login';
+      if (!isLoggedIn && !isLogin) return '/login';
+      if (isLoggedIn && isLogin) return '/';
+      return null;
+    },
+    routes: [
+      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(path: '/', builder: (context, state) => const HomePage()),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsPage(),
       ),
-    ),
-    GoRoute(
-      path: '/tasks/:id',
-      builder: (context, state) => TaskDetailPage(taskId: state.pathParameters['id']!),
-    ),
-    GoRoute(
-      path: '/chat/:id',
-      builder: (context, state) => ChatPage(conversationId: state.pathParameters['id']!),
-    ),
-  ],
-);
+      GoRoute(path: '/profile', builder: (context, state) => const ProfilePage()),
+      GoRoute(
+        path: '/helper-profile',
+        builder: (context, state) => const HelperProfilePage(),
+      ),
+      GoRoute(path: '/tasks', builder: (context, state) => const TaskListPage()),
+      GoRoute(
+        path: '/tasks/new/:kind',
+        builder: (context, state) => CreateTaskPage(
+          taskKind: taskKindFromValue(state.pathParameters['kind']),
+        ),
+      ),
+      GoRoute(
+        path: '/tasks/:id',
+        builder: (context, state) => TaskDetailPage(
+          taskId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/chat/:id',
+        builder: (context, state) => ChatPage(
+          conversationId: state.pathParameters['id']!,
+        ),
+      ),
+    ],
+  );
+}
 
 class _MissingConfigPage extends StatelessWidget {
   const _MissingConfigPage();

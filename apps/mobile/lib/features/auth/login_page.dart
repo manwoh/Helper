@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/validators.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/primary_button.dart';
 
@@ -16,14 +17,17 @@ class _LoginPageState extends State<LoginPage> {
   final _auth = AuthService();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _confirmPassword = TextEditingController();
   final _displayName = TextEditingController();
   bool _isRegister = false;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _confirmPassword.dispose();
     _displayName.dispose();
     super.dispose();
   }
@@ -33,24 +37,31 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      if (_isRegister) {
-        await _auth.signUp(
-          email: _email.text.trim(),
-          password: _password.text,
-          displayName: _displayName.text.trim(),
+      final result = _isRegister
+          ? await _auth.signUp(
+              email: _email.text,
+              password: _password.text,
+              displayName: _displayName.text,
+            )
+          : await _auth.signIn(
+              email: _email.text,
+              password: _password.text,
+            );
+
+      if (!mounted) return;
+      if (result.needsEmailConfirmation) {
+        setState(() => _isRegister = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('注册成功，请先到邮箱确认账号后再登录。')),
         );
-      } else {
-        await _auth.signIn(
-          email: _email.text.trim(),
-          password: _password.text,
-        );
+        return;
       }
-      if (!context.mounted) return;
-      context.go('/');
+
+      context.go('/profile');
     } catch (error) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('登录失败：$error')),
+        SnackBar(content: Text('${_isRegister ? '注册' : '登录'}失败：$error')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -59,6 +70,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final title = _isRegister ? '创建账号' : '欢迎回来';
+    final subtitle = _isRegister
+        ? '注册后可以发布需求、报价接单和管理自己的本地服务资料。'
+        : '登录后继续发布任务、聊天和查看帮手报价。';
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -79,49 +95,103 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '本地生活互助、技能服务、找答案和找资源。',
+                      '本地生活互助、技能服务、找答案、找东西和找资源。',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(subtitle),
+                    const SizedBox(height: 20),
                     SegmentedButton<bool>(
                       segments: const [
                         ButtonSegment(value: false, label: Text('登录')),
                         ButtonSegment(value: true, label: Text('注册')),
                       ],
                       selected: {_isRegister},
-                      onSelectionChanged: (value) {
-                        setState(() => _isRegister = value.first);
-                      },
+                      onSelectionChanged: _isLoading
+                          ? null
+                          : (value) {
+                              setState(() => _isRegister = value.first);
+                            },
                     ),
                     const SizedBox(height: 20),
                     if (_isRegister) ...[
                       TextFormField(
                         controller: _displayName,
-                        decoration: const InputDecoration(labelText: '昵称'),
-                        validator: (value) =>
-                            (value?.trim().isEmpty ?? true) ? '请填写昵称' : null,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: '昵称',
+                          prefixIcon: Icon(Icons.badge_outlined),
+                        ),
+                        validator: AppValidators.displayName,
                       ),
                       const SizedBox(height: 12),
                     ],
                     TextFormField(
                       controller: _email,
-                      decoration: const InputDecoration(labelText: '邮箱'),
+                      decoration: const InputDecoration(
+                        labelText: '邮箱',
+                        prefixIcon: Icon(Icons.mail_outline),
+                      ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) =>
-                          (value?.contains('@') ?? false) ? null : '请输入有效邮箱',
+                      textInputAction: TextInputAction.next,
+                      validator: AppValidators.email,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _password,
-                      decoration: const InputDecoration(labelText: '密码'),
-                      obscureText: true,
-                      validator: (value) =>
-                          (value?.length ?? 0) >= 6 ? null : '密码至少 6 位',
+                      decoration: InputDecoration(
+                        labelText: '密码',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                          onPressed: () {
+                            setState(() => _obscurePassword = !_obscurePassword);
+                          },
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                        ),
+                      ),
+                      obscureText: _obscurePassword,
+                      textInputAction:
+                          _isRegister ? TextInputAction.next : TextInputAction.done,
+                      validator: AppValidators.password,
+                      onFieldSubmitted: (_) {
+                        if (!_isRegister) _submit();
+                      },
                     ),
+                    if (_isRegister) ...[
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _confirmPassword,
+                        decoration: const InputDecoration(
+                          labelText: '确认密码',
+                          prefixIcon: Icon(Icons.lock_reset_outlined),
+                        ),
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        validator: (value) => AppValidators.confirmPassword(
+                          value,
+                          _password.text,
+                        ),
+                        onFieldSubmitted: (_) => _submit(),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     PrimaryButton(
                       label: _isRegister ? '创建账号' : '登录',
-                      icon: Icons.login,
+                      icon: _isRegister
+                          ? Icons.person_add_alt_1_outlined
+                          : Icons.login,
                       isLoading: _isLoading,
                       onPressed: _submit,
                     ),

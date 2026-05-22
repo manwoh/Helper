@@ -9,6 +9,8 @@ enum AppRole {
   final String value;
   final String label;
 
+  static const selectable = [AppRole.user, AppRole.helper, AppRole.merchant];
+
   static AppRole fromValue(String? value) {
     return AppRole.values.firstWhere(
       (role) => role.value == value,
