@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+class AppShellBreakpoints {
+  static const desktopWidth = 900.0;
+
+  static bool isDesktop(double width) => width >= desktopWidth;
+}
+
 class AppShell extends StatelessWidget {
   const AppShell({
     super.key,
@@ -10,6 +16,53 @@ class AppShell extends StatelessWidget {
   });
 
   final String title;
+  final Widget child;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final location = GoRouterState.of(context).matchedLocation;
+        final index = _indexForLocation(location);
+
+        if (AppShellBreakpoints.isDesktop(constraints.maxWidth)) {
+          return _DesktopShell(
+            title: title,
+            selectedIndex: index,
+            actions: actions,
+            child: child,
+          );
+        }
+
+        return _MobileShell(
+          title: title,
+          selectedIndex: index,
+          actions: actions,
+          child: child,
+        );
+      },
+    );
+  }
+
+  int _indexForLocation(String location) {
+    if (location.startsWith('/tasks')) return 1;
+    if (location.startsWith('/helper-profile')) return 2;
+    if (location.startsWith('/profile')) return 3;
+    return 0;
+  }
+}
+
+class _MobileShell extends StatelessWidget {
+  const _MobileShell({
+    required this.title,
+    required this.selectedIndex,
+    required this.child,
+    this.actions,
+  });
+
+  final String title;
+  final int selectedIndex;
   final Widget child;
   final List<Widget>? actions;
 
@@ -29,23 +82,8 @@ class AppShell extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _indexForLocation(GoRouterState.of(context).matchedLocation),
-        onDestinationSelected: (index) {
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              context.go('/tasks');
-              break;
-            case 2:
-              context.go('/helper-profile');
-              break;
-            case 3:
-              context.go('/profile');
-              break;
-          }
-        },
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) => _goToIndex(context, index),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), label: '首页'),
           NavigationDestination(icon: Icon(Icons.list_alt_outlined), label: '任务'),
@@ -55,11 +93,235 @@ class AppShell extends StatelessWidget {
       ),
     );
   }
+}
 
-  int _indexForLocation(String location) {
-    if (location.startsWith('/tasks')) return 1;
-    if (location.startsWith('/helper-profile')) return 2;
-    if (location.startsWith('/profile')) return 3;
-    return 0;
+class _DesktopShell extends StatelessWidget {
+  const _DesktopShell({
+    required this.title,
+    required this.selectedIndex,
+    required this.child,
+    this.actions,
+  });
+
+  final String title;
+  final int selectedIndex;
+  final Widget child;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Row(
+          children: [
+            _DesktopSidebar(selectedIndex: selectedIndex),
+            const VerticalDivider(width: 1),
+            Expanded(
+              child: Column(
+                children: [
+                  _DesktopTopBar(title: title, actions: actions),
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1180),
+                        child: child,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopSidebar extends StatelessWidget {
+  const _DesktopSidebar({required this.selectedIndex});
+
+  final int selectedIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 248,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.handshake_outlined, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '找帮手',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      ),
+                      SizedBox(height: 2),
+                      Text('本地互助平台', style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            _NavItem(
+              index: 0,
+              selectedIndex: selectedIndex,
+              icon: Icons.home_outlined,
+              selectedIcon: Icons.home,
+              label: '首页',
+            ),
+            _NavItem(
+              index: 1,
+              selectedIndex: selectedIndex,
+              icon: Icons.list_alt_outlined,
+              selectedIcon: Icons.list_alt,
+              label: '任务大厅',
+            ),
+            _NavItem(
+              index: 2,
+              selectedIndex: selectedIndex,
+              icon: Icons.handyman_outlined,
+              selectedIcon: Icons.handyman,
+              label: '做帮手',
+            ),
+            _NavItem(
+              index: 3,
+              selectedIndex: selectedIndex,
+              icon: Icons.person_outline,
+              selectedIcon: Icons.person,
+              label: '我的资料',
+            ),
+            const Spacer(),
+            FilledButton.icon(
+              onPressed: () => context.go('/tasks/new/help'),
+              icon: const Icon(Icons.add),
+              label: const Text('发布需求'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.index,
+    required this.selectedIndex,
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+  });
+
+  final int index;
+  final int selectedIndex;
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = index == selectedIndex;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => _goToIndex(context, index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: selected ? colorScheme.primary.withAlpha(24) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected ? selectedIcon : icon,
+                color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected ? colorScheme.primary : colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopTopBar extends StatelessWidget {
+  const _DesktopTopBar({required this.title, this.actions});
+
+  final String title;
+  final List<Widget>? actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 72,
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const Spacer(),
+          if (actions != null) ...actions!,
+        ],
+      ),
+    );
+  }
+}
+
+void _goToIndex(BuildContext context, int index) {
+  switch (index) {
+    case 0:
+      context.go('/');
+      break;
+    case 1:
+      context.go('/tasks');
+      break;
+    case 2:
+      context.go('/helper-profile');
+      break;
+    case 3:
+      context.go('/profile');
+      break;
   }
 }
